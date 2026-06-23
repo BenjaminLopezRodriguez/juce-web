@@ -6,6 +6,5 @@ export default function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // Protect tRPC mutations; allow public queries unauthenticated at the procedure level
-  matcher: ["/api/trpc/:path*"],
+  matcher: ["/onboarding", "/api/trpc/:path*"],
 };

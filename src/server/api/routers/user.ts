@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, kindeProtectedProcedure, protectedProcedure } from "~/server/api/trpc";
 import { follows, users } from "~/server/db/schema";
 
 export const userRouter = createTRPCRouter({
@@ -23,7 +23,7 @@ export const userRouter = createTRPCRouter({
     return { ...ctx.dbUser, followerCount, followingCount };
   }),
 
-  upsert: protectedProcedure
+  upsert: kindeProtectedProcedure
     .input(
       z.object({
         handle: z.string().min(1).max(32).regex(/^[a-z0-9_]+$/),

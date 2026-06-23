@@ -74,3 +74,19 @@ const enforceAuth = t.middleware(({ ctx, next }) => {
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(enforceAuth);
+
+const enforceKinde = t.middleware(({ ctx, next }) => {
+  if (!ctx.kindeUser?.id) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({
+    ctx: {
+      ...ctx,
+      kindeUser: ctx.kindeUser,
+    },
+  });
+});
+
+export const kindeProtectedProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(enforceKinde);
