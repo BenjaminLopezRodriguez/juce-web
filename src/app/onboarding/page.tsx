@@ -36,7 +36,7 @@ export default async function OnboardingPage() {
         className="w-full max-w-sm p-8 flex flex-col gap-6"
         style={{
           background: "var(--color-surface-elevated)",
-          borderRadius: "var(--radius-xl)",
+          borderRadius: "var(--juce-radius-xl)",
           boxShadow: "var(--shadow-float)",
         }}
       >
@@ -47,7 +47,7 @@ export default async function OnboardingPage() {
           >
             Welcome to Juce
           </h1>
-          <p className="text-sm" style={{ color: "var(--color-muted)" }}>
+          <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
             Set up your profile to get started.
           </p>
         </div>

@@ -30,7 +30,7 @@ export default async function Home() {
         >
           Juce
         </h1>
-        <p className="text-sm" style={{ color: "var(--color-muted)" }}>
+        <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
           Music. Live. Together.
         </p>
       </div>
@@ -38,7 +38,7 @@ export default async function Home() {
         className="px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-80"
         style={{
           background: "var(--color-live-accent)",
-          borderRadius: "var(--radius-pill)",
+          borderRadius: "var(--juce-radius-pill)",
         }}
       >
         Sign in to Juce

@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { Heart, Repeat2, MessageCircle } from "lucide-react";
 import { api } from "~/trpc/react";
+import { Avatar, AvatarFallback } from "~/components/ui/avatar";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 
 interface MomentCardProps {
   moment: {
@@ -46,68 +50,86 @@ export function MomentCard({ moment }: MomentCardProps) {
     <div className="juce-card flex flex-col gap-3 p-4">
       {/* Author row */}
       <div className="flex items-center gap-2.5">
-        <div
-          className="h-8 w-8 flex-shrink-0 rounded-full bubble-gradient"
-          style={{
-            "--palette-from": moment.author.paletteFrom,
-            "--palette-to": moment.author.paletteTo,
-          } as React.CSSProperties}
-        />
-        <div className="flex flex-col leading-none gap-0.5 min-w-0 flex-1">
+        <Avatar className="h-8 w-8 flex-shrink-0">
+          <AvatarFallback
+            className="bubble-gradient text-white text-xs font-bold"
+            style={{
+              "--palette-from": moment.author.paletteFrom,
+              "--palette-to": moment.author.paletteTo,
+            } as React.CSSProperties}
+          >
+            {moment.author.handle.slice(0, 2).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5 leading-none">
           <span className="text-sm font-semibold" style={{ color: "var(--color-app-primary)" }}>
             {moment.author.displayName}
           </span>
-          <span className="text-xs truncate" style={{ color: "var(--color-muted)" }}>
+          <span className="truncate text-xs" style={{ color: "var(--color-text-muted)" }}>
             from &ldquo;{moment.room.title}&rdquo;
           </span>
         </div>
+
         {moment.clipDurationSecs > 0 && (
-          <span
-            className="juce-pill flex-shrink-0"
-            style={{ background: "var(--color-muted-bg)", color: "var(--color-muted)" }}
+          <Badge
+            variant="secondary"
+            className="flex-shrink-0 rounded-full text-[10px] font-extrabold uppercase tracking-wider"
           >
             {moment.clipDurationSecs}s
-          </span>
+          </Badge>
         )}
       </div>
 
       {/* Transcript */}
       <p
-        className="text-sm leading-relaxed line-clamp-5"
+        className="line-clamp-5 text-sm leading-relaxed"
         style={{ color: "var(--color-app-primary)" }}
       >
         &ldquo;{moment.transcript}&rdquo;
       </p>
 
       {moment.caption && (
-        <p className="text-xs italic" style={{ color: "var(--color-muted)" }}>
+        <p className="text-xs italic" style={{ color: "var(--color-text-muted)" }}>
           {moment.caption}
         </p>
       )}
 
       {/* Actions */}
       <div
-        className="flex items-center gap-5 pt-2"
-        style={{ borderTop: "1px solid var(--color-border)" }}
+        className="flex items-center gap-1 pt-2"
+        style={{ borderTop: "1px solid var(--color-juce-border)" }}
       >
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={toggleLike}
-          className="flex items-center gap-1.5 text-sm font-medium transition-all active:scale-90"
-          style={{ color: liked ? "var(--color-squeeze-accent)" : "var(--color-muted)" }}
+          className="flex items-center gap-1.5 rounded-full px-3 transition-all active:scale-90"
+          style={{ color: liked ? "var(--color-squeeze-accent)" : "var(--color-text-muted)" }}
         >
-          <span className="text-base leading-none">{liked ? "♥" : "♡"}</span>
-          <span>{likeCount}</span>
-        </button>
+          <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
+          <span className="text-sm">{likeCount}</span>
+        </Button>
 
-        <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--color-muted)" }}>
-          <span className="text-base leading-none">↻</span>
-          <span>{moment.repostCount}</span>
-        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex items-center gap-1.5 rounded-full px-3"
+          style={{ color: "var(--color-text-muted)" }}
+        >
+          <Repeat2 className="h-4 w-4" />
+          <span className="text-sm">{moment.repostCount}</span>
+        </Button>
 
-        <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--color-muted)" }}>
-          <span className="text-base leading-none">◎</span>
-          <span>{moment.replyCount}</span>
-        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex items-center gap-1.5 rounded-full px-3"
+          style={{ color: "var(--color-text-muted)" }}
+        >
+          <MessageCircle className="h-4 w-4" />
+          <span className="text-sm">{moment.replyCount}</span>
+        </Button>
       </div>
     </div>
   );
