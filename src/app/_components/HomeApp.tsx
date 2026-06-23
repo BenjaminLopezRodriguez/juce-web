@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Home, Radio, User } from "lucide-react";
 import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { MomentCard } from "./MomentCard";
@@ -48,10 +49,10 @@ type Snippet = {
   source: "room_conversation" | "host_moment" | "audience_reaction";
 };
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "snippets", label: "Snippets" },
-  { id: "rooms", label: "Rooms" },
-  { id: "profile", label: "Profile" },
+const NAV = [
+  { id: "snippets" as const, icon: Home,  label: "Home" },
+  { id: "rooms"    as const, icon: Radio, label: "Rooms" },
+  { id: "profile"  as const, icon: User,  label: "Profile" },
 ];
 
 export function HomeApp({
@@ -65,44 +66,31 @@ export function HomeApp({
   snippets: Snippet[];
   hostedRoomCount: number;
 }) {
-  const [tab, setTab] = useState<Tab>("rooms");
+  const [tab, setTab] = useState<Tab>("snippets");
 
   return (
     <div className="juce-shell flex min-h-dvh flex-col">
+      {/* Header */}
       <header
         className="sticky top-0 z-20 border-b"
-        style={{
-          background: "var(--color-surface)",
-          borderColor: "var(--color-juce-border)",
-        }}
+        style={{ background: "var(--color-background)", borderColor: "var(--color-juce-border)" }}
       >
-        <div className="mx-auto flex max-w-lg items-center justify-between px-5 py-4">
-          <span className="font-heading text-lg font-semibold tracking-tight" style={{ color: "var(--color-text)" }}>
+        <div className="mx-auto flex max-w-lg items-center justify-between px-5 py-3">
+          <span
+            className="font-heading text-lg font-semibold tracking-tight"
+            style={{ color: "var(--color-text)" }}
+          >
             Juce
           </span>
           {tab === "rooms" && <StartRoomButton />}
         </div>
-
-        <nav className="mx-auto flex max-w-lg gap-6 px-5">
-          {TABS.map(({ id, label }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setTab(id)}
-              className="juce-tab -mb-px border-b-2 pb-3 text-sm transition-colors"
-              style={{
-                borderColor: tab === id ? "var(--color-primary)" : "transparent",
-                color: tab === id ? "var(--color-app-primary)" : "var(--color-text-muted)",
-                fontWeight: tab === id ? 500 : 400,
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
       </header>
 
-      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col px-5 py-6">
+      {/* Content */}
+      <main
+        className="mx-auto flex w-full max-w-lg flex-1 flex-col px-5 py-6"
+        style={{ paddingBottom: "calc(64px + env(safe-area-inset-bottom))" }}
+      >
         {tab === "snippets" && (
           <SnippetsPanel snippets={snippets} currentUserId={user.id} />
         )}
@@ -115,6 +103,37 @@ export function HomeApp({
           />
         )}
       </main>
+
+      {/* Bottom nav — Threads style */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-30 border-t"
+        style={{
+          background: "var(--color-background)",
+          borderColor: "var(--color-juce-border)",
+          paddingBottom: "env(safe-area-inset-bottom)",
+        }}
+      >
+        <div className="mx-auto flex max-w-lg items-center justify-around py-2">
+          {NAV.map(({ id, icon: Icon, label }) => {
+            const active = tab === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setTab(id)}
+                aria-label={label}
+                className="flex items-center justify-center p-3 transition-opacity active:opacity-60"
+                style={{ color: active ? "var(--color-text)" : "var(--color-muted)" }}
+              >
+                <Icon
+                  className="size-6"
+                  strokeWidth={active ? 2.5 : 1.5}
+                />
+              </button>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }
@@ -129,9 +148,10 @@ function SnippetsPanel({
   return (
     <section className="flex flex-col">
       <SnippetComposer />
-
       {snippets.length === 0 ? (
-        <EmptyState message="No snippets yet. Record one above." />
+        <p className="text-sm" style={{ color: "var(--color-muted)" }}>
+          No snippets yet. Record one above.
+        </p>
       ) : (
         <div className="flex flex-col divide-y" style={{ borderColor: "var(--color-juce-border)" }}>
           {snippets.map((snippet) => (
@@ -149,7 +169,7 @@ function RoomsPanel({ liveRooms }: { liveRooms: LiveRoom[] }) {
   if (liveRooms.length === 0) {
     return (
       <div className="flex flex-col items-start gap-4 pt-2">
-        <EmptyState message="No live rooms." />
+        <p className="text-sm" style={{ color: "var(--color-muted)" }}>No live rooms.</p>
         <StartRoomButton label="Start a room" />
       </div>
     );
@@ -194,49 +214,41 @@ function ProfilePanel({
         </Avatar>
 
         <div className="flex min-w-0 flex-col gap-1 pt-0.5">
-          <h2 className="text-base font-medium" style={{ color: "var(--color-app-primary)" }}>
+          <h2 className="text-base font-medium" style={{ color: "var(--color-text)" }}>
             {user.displayName}
           </h2>
-          <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+          <p className="text-sm" style={{ color: "var(--color-muted)" }}>
             @{user.handle}
           </p>
-          {user.bio ? (
-            <p className="pt-2 text-sm leading-relaxed" style={{ color: "var(--color-text-muted)" }}>
+          {user.bio && (
+            <p className="pt-2 text-sm leading-relaxed" style={{ color: "var(--color-muted)" }}>
               {user.bio}
             </p>
-          ) : null}
+          )}
         </div>
       </div>
 
       <dl className="grid grid-cols-2 gap-4 text-sm">
         <div>
-          <dt style={{ color: "var(--color-text-muted)" }}>Rooms</dt>
-          <dd className="mt-0.5 tabular-nums" style={{ color: "var(--color-app-primary)" }}>{hostedRoomCount}</dd>
+          <dt style={{ color: "var(--color-muted)" }}>Rooms</dt>
+          <dd className="mt-0.5 tabular-nums" style={{ color: "var(--color-text)" }}>{hostedRoomCount}</dd>
         </div>
         <div>
-          <dt style={{ color: "var(--color-text-muted)" }}>Snippets</dt>
-          <dd className="mt-0.5 tabular-nums" style={{ color: "var(--color-app-primary)" }}>{snippetCount}</dd>
+          <dt style={{ color: "var(--color-muted)" }}>Snippets</dt>
+          <dd className="mt-0.5 tabular-nums" style={{ color: "var(--color-text)" }}>{snippetCount}</dd>
         </div>
         <div className="col-span-2">
-          <dt style={{ color: "var(--color-text-muted)" }}>Member since</dt>
-          <dd className="mt-0.5" style={{ color: "var(--color-app-primary)" }}>{memberSince}</dd>
+          <dt style={{ color: "var(--color-muted)" }}>Member since</dt>
+          <dd className="mt-0.5" style={{ color: "var(--color-text)" }}>{memberSince}</dd>
         </div>
       </dl>
 
       <LogoutLink
         className="text-sm transition-opacity hover:opacity-70"
-        style={{ color: "var(--color-text-muted)" }}
+        style={{ color: "var(--color-muted)" }}
       >
         Sign out
       </LogoutLink>
     </section>
-  );
-}
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-      {message}
-    </p>
   );
 }

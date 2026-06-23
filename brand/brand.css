@@ -1,13 +1,17 @@
 :root {
+  color-scheme: light dark;
+
   --color-primary: #3b82f6;
-  --color-secondary: #1a1a1a;
-  --color-accent: #ef4444;
-  --color-background: #0a0a0a;
-  --color-surface: #141414;
-  --color-text: #f5f5f5;
-  --color-muted: #737373;
+  --color-accent:  #ef4444;
+
+  --color-background: light-dark(#f9f9f9, #0a0a0a);
+  --color-surface:    light-dark(#ffffff, #141414);
+  --color-secondary:  light-dark(#f0f0f0, #1a1a1a);
+  --color-text:       light-dark(#111111, #f5f5f5);
+  --color-muted:      light-dark(#6b6b6b, #737373);
+
   --font-heading: "Outfit", ui-sans-serif, system-ui;
-  --font-body: "DM Sans", ui-sans-serif, system-ui;
-  --font-mono: "JetBrains Mono", ui-monospace;
-  --radius-base: 12px;
+  --font-body:    "DM Sans", ui-sans-serif, system-ui;
+  --font-mono:    "JetBrains Mono", ui-monospace;
+  --radius-base:  12px;
 }
