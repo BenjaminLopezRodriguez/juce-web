@@ -153,11 +153,14 @@ export const roomRouter = createTRPCRouter({
       // Re-fetch to get updated count
       const updated = await ctx.db.query.rooms.findFirst({
         where: eq(rooms.id, input.roomId),
-        columns: { listenerCount: true, ivsChannelArn: true },
+        columns: { listenerCount: true, ivsChannelArn: true, createdAt: true },
       });
 
-      // Auto-end when everyone is gone
-      if (updated && updated.listenerCount <= 0) {
+      // Auto-end when everyone is gone — but respect a 30s grace period
+      // so a brand-new room can't be killed before the first user loads in
+      const GRACE_MS = 30_000;
+      const roomAge = updated ? Date.now() - updated.createdAt.getTime() : Infinity;
+      if (updated && updated.listenerCount <= 0 && roomAge > GRACE_MS) {
         await endRoom(ctx.db, input.roomId, updated.ivsChannelArn);
       }
     }),

@@ -109,7 +109,8 @@ export function RoomView({ room: initialRoom, currentUser, isHost }: Props) {
     return () => {
       if (soloTimer.current) clearInterval(soloTimer.current);
     };
-  }, [soloSince, ended, isHost, initialRoom.id, leave]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [soloSince, ended, isHost, initialRoom.id]);
 
   // Join on mount
   useEffect(() => {
@@ -119,9 +120,13 @@ export function RoomView({ room: initialRoom, currentUser, isHost }: Props) {
   }, [initialRoom.id, ended, join]);
 
   // Leave on unmount / tab close
+  // Omit `leave` from deps — leave.mutate is stable in react-query v5;
+  // including the mutation object would recreate this callback every render
+  // and cause the effect below to call leave.mutate on every render.
   const handleLeave = useCallback(() => {
     if (!ended) leave.mutate({ roomId: initialRoom.id });
-  }, [ended, initialRoom.id, leave]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ended, initialRoom.id]);
 
   useEffect(() => {
     const onUnload = () => {
