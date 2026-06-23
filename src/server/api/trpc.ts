@@ -62,9 +62,18 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
 
   // iOS / native clients send Authorization: Bearer <token>
   if (!kindeUser?.id) {
-    const auth = opts.headers.get("authorization");
-    if (auth?.startsWith("Bearer ")) {
-      const resolved = await kindeUserFromBearer(auth.slice(7));
+    const authHeader = opts.headers.get("authorization");
+    // Log which headers arrived so we can debug missing auth on native clients
+    const headerKeys = [...opts.headers.keys()].join(",");
+    console.log(`[auth] no-session | auth-header=${authHeader ? `"${authHeader.slice(0, 20)}…"` : "none"} | headers=${headerKeys}`);
+
+    // Accept "Bearer " (standard) — Headers API normalises to lowercase key already
+    const token = authHeader?.toLowerCase().startsWith("bearer ")
+      ? authHeader.slice(7).trim()
+      : null;
+
+    if (token) {
+      const resolved = await kindeUserFromBearer(token);
       if (resolved) {
         kindeUser = resolved as NonNullable<typeof kindeUser>;
       } else {
