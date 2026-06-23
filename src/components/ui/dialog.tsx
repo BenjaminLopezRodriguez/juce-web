@@ -61,7 +61,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "fixed bottom-0 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 gap-4 rounded-t-3xl bg-popover p-6 pb-10 text-sm text-popover-foreground shadow-2xl duration-150 outline-none sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 sm:max-w-sm sm:rounded-3xl sm:pb-6 data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-4 sm:data-open:zoom-in-95 sm:data-open:slide-in-from-bottom-0 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-4 sm:data-closed:zoom-out-95 sm:data-closed:slide-out-to-bottom-0",
+          "fixed bottom-0 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] max-h-[90dvh] overflow-y-auto -translate-x-1/2 gap-4 rounded-t-3xl bg-popover p-6 pb-10 text-sm text-popover-foreground shadow-2xl duration-150 outline-none sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 sm:max-w-sm sm:max-h-[85vh] sm:rounded-3xl sm:pb-6 data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-4 sm:data-open:zoom-in-95 sm:data-open:slide-in-from-bottom-0 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-4 sm:data-closed:zoom-out-95 sm:data-closed:slide-out-to-bottom-0",
           className
         )}
         {...props}

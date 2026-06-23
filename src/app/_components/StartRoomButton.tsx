@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
+import { Copy, Check } from "lucide-react";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
 import {
@@ -15,8 +15,6 @@ import { Input } from "~/components/ui/input";
 
 interface RoomResult {
   id: number;
-  ingestEndpoint: string;
-  streamKey: string;
 }
 
 export function StartRoomButton({ label = "Go Live" }: { label?: string }) {
@@ -27,11 +25,7 @@ export function StartRoomButton({ label = "Go Live" }: { label?: string }) {
 
   const create = api.room.create.useMutation({
     onSuccess: (data) => {
-      setResult({
-        id: data.id,
-        ingestEndpoint: data.ivsIngestEndpoint,
-        streamKey: data.ivsStreamKey,
-      });
+      setResult({ id: data.id });
       router.refresh();
     },
   });
@@ -61,7 +55,7 @@ export function StartRoomButton({ label = "Go Live" }: { label?: string }) {
       <Dialog open={open} onOpenChange={(v) => !v && close()}>
         <DialogContent>
           {result ? (
-            <SuccessState result={result} title={title} onGoToRoom={goToRoom} onClose={close} />
+            <SuccessState result={result} onGoToRoom={goToRoom} onClose={close} />
           ) : (
             <CreateForm
               title={title}
@@ -130,12 +124,10 @@ function CreateForm({
 
 function SuccessState({
   result,
-  title,
   onGoToRoom,
   onClose,
 }: {
   result: RoomResult;
-  title: string;
   onGoToRoom: () => void;
   onClose: () => void;
 }) {
@@ -144,8 +136,6 @@ function SuccessState({
       ? `${window.location.origin}/invite/${result.id}`
       : `/invite/${result.id}`;
 
-  const [obsOpen, setObsOpen] = useState(false);
-
   return (
     <>
       <DialogHeader>
@@ -153,7 +143,7 @@ function SuccessState({
           className="text-lg font-black"
           style={{ fontFamily: "var(--font-rounded)", color: "var(--color-app-primary)" }}
         >
-          🎙 Room is live
+          Room is live
         </DialogTitle>
       </DialogHeader>
 
@@ -161,28 +151,7 @@ function SuccessState({
         Share this link so others can join:
       </p>
 
-      {/* Invite link — hero element */}
       <CopyField value={inviteUrl} />
-
-      {/* OBS / streaming setup — collapsed by default */}
-      <button
-        onClick={() => setObsOpen((o) => !o)}
-        className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors"
-        style={{
-          background: "var(--color-juce-muted-bg)",
-          color: "var(--color-text-muted)",
-        }}
-      >
-        <span>Streaming setup (OBS / Streamlabs)</span>
-        {obsOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-      </button>
-
-      {obsOpen && (
-        <div className="flex flex-col gap-3 -mt-1">
-          <LabeledField label="Server URL" value={`rtmps://${result.ingestEndpoint}:443/app/`} />
-          <LabeledField label="Stream Key" value={result.streamKey} secret />
-        </div>
-      )}
 
       <div className="flex gap-2 pt-1">
         <Button
@@ -229,48 +198,12 @@ function CopyField({ value }: { value: string }) {
       >
         {value}
       </span>
-      <span className="flex-shrink-0" style={{ color: copied ? "var(--color-live-accent)" : "var(--color-text-muted)" }}>
+      <span
+        className="flex-shrink-0"
+        style={{ color: copied ? "var(--color-live-accent)" : "var(--color-text-muted)" }}
+      >
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
       </span>
     </button>
-  );
-}
-
-function LabeledField({ label, value, secret }: { label: string; value: string; secret?: boolean }) {
-  const [revealed, setRevealed] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  function copy() {
-    void navigator.clipboard.writeText(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
-        {label}
-      </span>
-      <div
-        className="flex items-center gap-2 rounded-xl px-3 py-2.5"
-        style={{ background: "var(--color-juce-muted-bg)", border: "1px solid var(--color-juce-border)" }}
-      >
-        <span className="flex-1 truncate font-mono text-xs" style={{ color: "var(--color-app-primary)" }}>
-          {secret && !revealed ? "•".repeat(24) : value}
-        </span>
-        {secret && (
-          <button onClick={() => setRevealed((r) => !r)} className="flex-shrink-0 text-xs" style={{ color: "var(--color-text-muted)" }}>
-            {revealed ? "hide" : "show"}
-          </button>
-        )}
-        <button
-          onClick={copy}
-          className="flex-shrink-0 text-xs font-medium"
-          style={{ color: copied ? "var(--color-live-accent)" : "var(--color-text-muted)" }}
-        >
-          {copied ? "copied!" : "copy"}
-        </button>
-      </div>
-    </div>
   );
 }

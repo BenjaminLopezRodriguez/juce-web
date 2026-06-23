@@ -1,11 +1,10 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, gt, lt } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, lt, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { createIvsChannel, deleteIvsChannel, stopIvsStream } from "~/server/ivs";
 import { roomParticipants, rooms } from "~/server/db/schema";
-import { sql } from "drizzle-orm";
 
 const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 
@@ -115,7 +114,7 @@ export const roomRouter = createTRPCRouter({
 
       await ctx.db
         .insert(roomParticipants)
-        .values({ roomId: input.roomId, userId: ctx.dbUser.id })
+        .values({ roomId: input.roomId, userId: ctx.dbUser.id, lastSeenAt: new Date() })
         .onConflictDoNothing();
 
       await ctx.db
@@ -163,14 +162,53 @@ export const roomRouter = createTRPCRouter({
       }
     }),
 
+  // Ping presence + return accurate live count (prunes zombie listeners)
   heartbeat: protectedProcedure
     .input(z.object({ roomId: z.number() }))
-    .query(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const ZOMBIE_THRESHOLD_MS = 90_000;
+      const staleAfter = new Date(Date.now() - ZOMBIE_THRESHOLD_MS);
+
+      // Refresh this user's presence timestamp
+      await ctx.db
+        .update(roomParticipants)
+        .set({ lastSeenAt: new Date() })
+        .where(
+          and(
+            eq(roomParticipants.roomId, input.roomId),
+            eq(roomParticipants.userId, ctx.dbUser.id),
+            isNull(roomParticipants.leftAt),
+          ),
+        );
+
+      // Count distinct active users (seen in last 90s, not left)
+      const [row] = await ctx.db
+        .select({
+          count: sql<number>`count(distinct ${roomParticipants.userId})::int`,
+        })
+        .from(roomParticipants)
+        .where(
+          and(
+            eq(roomParticipants.roomId, input.roomId),
+            isNull(roomParticipants.leftAt),
+            gt(roomParticipants.lastSeenAt, staleAfter),
+          ),
+        );
+
+      const activeCount = row?.count ?? 0;
+
+      // Sync accurate count back to room row
+      await ctx.db
+        .update(rooms)
+        .set({ listenerCount: activeCount })
+        .where(eq(rooms.id, input.roomId));
+
       const room = await ctx.db.query.rooms.findFirst({
         where: eq(rooms.id, input.roomId),
-        columns: { listenerCount: true, state: true },
+        columns: { state: true },
       });
-      return room ?? { listenerCount: 0, state: "ended" as const };
+
+      return { listenerCount: activeCount, state: room?.state ?? ("ended" as const) };
     }),
 
   end: protectedProcedure

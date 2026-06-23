@@ -100,6 +100,7 @@ export const roomParticipants = createTable(
       .timestamp({ withTimezone: true })
       .$defaultFn(() => new Date())
       .notNull(),
+    lastSeenAt: d.timestamp({ withTimezone: true }),
     leftAt: d.timestamp({ withTimezone: true }),
   }),
   (t) => [
