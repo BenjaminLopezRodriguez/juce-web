@@ -13,34 +13,25 @@ interface RoomCardProps {
 
 export function RoomCard({ room }: RoomCardProps) {
   return (
-    <Link href={`/room/${room.id}`} className="group flex w-32 flex-shrink-0 flex-col gap-2">
+    <Link href={`/room/${room.id}`} className="flex w-28 flex-shrink-0 flex-col gap-2.5">
       <div
-        className="room-bubble aspect-square w-full flex items-center justify-center transition-transform group-hover:scale-105"
-        style={{
-          "--palette-from": room.paletteFrom,
-          "--palette-to": room.paletteTo,
-        } as React.CSSProperties}
+        className="room-bubble flex aspect-square w-full items-center justify-center"
+        style={{ "--palette-from": room.paletteFrom } as React.CSSProperties}
       >
-        <span
-          className="select-none text-xl font-black text-white"
-          style={{ fontFamily: "var(--font-rounded)" }}
-        >
+        <span className="select-none text-sm font-medium text-white/90">
           {room.title.slice(0, 2).toUpperCase()}
         </span>
       </div>
 
-      <div className="flex flex-col gap-0.5 px-0.5">
+      <div className="flex flex-col gap-0.5">
         <p
-          className="line-clamp-2 text-xs font-semibold leading-tight"
+          className="line-clamp-2 text-sm font-medium leading-snug"
           style={{ color: "var(--color-app-primary)" }}
         >
           {room.title}
         </p>
         <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-          @{room.host.handle}
-        </p>
-        <p className="live-dot text-xs" style={{ color: "var(--color-text-muted)" }}>
-          {room.listenerCount} listening
+          @{room.host.handle} · {room.listenerCount}
         </p>
       </div>
     </Link>

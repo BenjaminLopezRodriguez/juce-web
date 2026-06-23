@@ -28,26 +28,13 @@ export default async function OnboardingPage() {
     "New User";
 
   return (
-    <main
-      className="flex min-h-screen flex-col items-center justify-center px-4"
-      style={{ background: "var(--color-surface)" }}
-    >
-      <div
-        className="w-full max-w-sm p-8 flex flex-col gap-6"
-        style={{
-          background: "var(--color-surface-elevated)",
-          borderRadius: "var(--juce-radius-xl)",
-          boxShadow: "var(--shadow-float)",
-        }}
-      >
+    <main className="juce-shell flex min-h-dvh flex-col items-center justify-center px-4">
+      <div className="flex w-full max-w-sm flex-col gap-6 p-8">
         <div className="flex flex-col gap-1">
-          <h1
-            className="text-2xl font-black"
-            style={{ fontFamily: "var(--font-rounded)", color: "var(--color-app-primary)" }}
-          >
+          <h1 className="font-heading text-2xl font-semibold tracking-tight" style={{ color: "var(--color-text)" }}>
             Welcome to Juce
           </h1>
-          <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+          <p className="text-sm" style={{ color: "var(--color-muted)" }}>
             Set up your profile to get started.
           </p>
         </div>

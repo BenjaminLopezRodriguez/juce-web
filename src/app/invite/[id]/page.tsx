@@ -39,74 +39,64 @@ export default async function InvitePage({ params }: Props) {
   const isEnded = room.state === "ended";
 
   return (
-    <main
-      className="flex min-h-screen flex-col items-center justify-center gap-0 px-6"
-      style={{ background: "var(--color-surface)" }}
-    >
-      {/* Gradient bubble */}
+    <main className="juce-shell flex min-h-dvh flex-col items-center justify-center px-6">
       <div
-        className="mb-6 flex h-24 w-24 items-center justify-center rounded-full shadow-lg"
+        className="mb-6 flex size-20 items-center justify-center"
         style={{
+          borderRadius: "var(--radius-base)",
           background: `linear-gradient(135deg, ${room.paletteFrom}, ${room.paletteTo})`,
-          boxShadow: `0 12px 32px color-mix(in srgb, ${room.paletteFrom} 40%, transparent)`,
         }}
       >
-        <span
-          className="select-none text-3xl font-black text-white"
-          style={{ fontFamily: "var(--font-rounded)" }}
-        >
+        <span className="font-heading select-none text-2xl font-semibold text-white">
           {room.title.slice(0, 2).toUpperCase()}
         </span>
       </div>
 
-      <p className="mb-1 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-muted)" }}>
+      <p className="mb-1 text-xs font-medium uppercase tracking-wide" style={{ color: "var(--color-muted)" }}>
         You&apos;re invited to join
       </p>
 
-      <h1
-        className="mb-1 text-center text-2xl font-black leading-tight"
-        style={{ color: "var(--color-app-primary)", fontFamily: "var(--font-rounded)" }}
-      >
+      <h1 className="font-heading mb-1 text-center text-2xl font-semibold leading-tight" style={{ color: "var(--color-text)" }}>
         {room.title}
       </h1>
 
-      <p className="mb-8 text-sm" style={{ color: "var(--color-text-muted)" }}>
+      <p className="mb-8 text-sm" style={{ color: "var(--color-muted)" }}>
         hosted by @{room.host.handle}
       </p>
 
       {isEnded ? (
         <div className="flex flex-col items-center gap-3">
-          <p className="text-sm font-medium" style={{ color: "var(--color-text-muted)" }}>
+          <p className="text-sm font-medium" style={{ color: "var(--color-muted)" }}>
             This room has ended.
           </p>
-          <Button asChild variant="ghost" className="rounded-full">
+          <Button asChild variant="ghost" className="rounded-md">
             <Link href="/">Back to Juce</Link>
           </Button>
         </div>
       ) : authed ? (
-        <div className="flex flex-col items-center gap-3 w-full max-w-xs">
+        <div className="flex w-full max-w-xs flex-col items-center gap-3">
           <Button
             asChild
-            className="w-full rounded-full font-semibold text-white"
-            style={{ background: "var(--color-live-accent)" }}
+            className="w-full rounded-md font-medium text-white hover:opacity-90"
+            style={{ background: "var(--color-primary)" }}
           >
             <Link href={`/room/${room.id}`}>
               Join room · {room.listenerCount} listening
             </Link>
           </Button>
-          <Button asChild variant="ghost" className="rounded-full text-sm" style={{ color: "var(--color-text-muted)" }}>
+          <Button asChild variant="ghost" className="rounded-md text-sm" style={{ color: "var(--color-muted)" }}>
             <Link href="/">Maybe later</Link>
           </Button>
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-3 w-full max-w-xs">
-          <p className="text-sm text-center" style={{ color: "var(--color-text-muted)" }}>
+        <div className="flex w-full max-w-xs flex-col items-center gap-3">
+          <p className="text-center text-sm" style={{ color: "var(--color-muted)" }}>
             Sign in to Juce to join the room
           </p>
           <LoginLink
             postLoginRedirectURL={`/room/${room.id}`}
-            className="w-full rounded-full py-2.5 text-center text-sm font-semibold text-white transition-opacity hover:opacity-80"
-            style={{ background: "var(--color-live-accent)" }}
+            className="w-full rounded-md py-2.5 text-center text-sm font-medium text-white transition-opacity hover:opacity-80"
+            style={{ background: "var(--color-primary)" }}
           >
             Sign in &amp; Join
           </LoginLink>

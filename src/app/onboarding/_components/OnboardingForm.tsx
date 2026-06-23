@@ -5,6 +5,9 @@ import { useState } from "react";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { PalettePicker, type Palette } from "~/app/_components/PalettePicker";
+
+const DEFAULT_PALETTE: Palette = { from: "#3b5bdb", to: "#151228" };
 
 interface Props {
   suggestedHandle: string;
@@ -15,6 +18,7 @@ export function OnboardingForm({ suggestedHandle, suggestedDisplayName }: Props)
   const router = useRouter();
   const [handle, setHandle] = useState(suggestedHandle);
   const [displayName, setDisplayName] = useState(suggestedDisplayName);
+  const [palette, setPalette] = useState<Palette>(DEFAULT_PALETTE);
 
   const upsert = api.user.upsert.useMutation({
     onSuccess: () => {
@@ -25,12 +29,7 @@ export function OnboardingForm({ suggestedHandle, suggestedDisplayName }: Props)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    upsert.mutate({
-      handle,
-      displayName,
-      paletteFrom: "#f97316",
-      paletteTo: "#1a1a1a",
-    });
+    upsert.mutate({ handle, displayName, paletteFrom: palette.from, paletteTo: palette.to });
   }
 
   return (
@@ -39,17 +38,12 @@ export function OnboardingForm({ suggestedHandle, suggestedDisplayName }: Props)
         <label
           htmlFor="handle"
           className="text-xs font-semibold uppercase tracking-wider"
-          style={{ color: "var(--color-text-muted)" }}
+          style={{ color: "var(--color-muted)" }}
         >
           Handle
         </label>
-        <div
-          className="flex items-center gap-1 rounded-xl border px-3 py-0.5"
-          style={{ borderColor: "var(--color-juce-border)", background: "var(--color-juce-muted-bg)" }}
-        >
-          <span className="select-none text-sm" style={{ color: "var(--color-text-muted)" }}>
-            @
-          </span>
+        <div className="flex h-10 items-center gap-1 rounded-xl border border-input bg-background px-3 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
+          <span className="select-none text-sm text-muted-foreground">@</span>
           <input
             id="handle"
             type="text"
@@ -59,8 +53,7 @@ export function OnboardingForm({ suggestedHandle, suggestedDisplayName }: Props)
             }
             maxLength={32}
             required
-            className="flex-1 bg-transparent py-2.5 text-sm outline-none"
-            style={{ color: "var(--color-app-primary)" }}
+            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             placeholder="your_handle"
           />
         </div>
@@ -70,7 +63,7 @@ export function OnboardingForm({ suggestedHandle, suggestedDisplayName }: Props)
         <label
           htmlFor="displayName"
           className="text-xs font-semibold uppercase tracking-wider"
-          style={{ color: "var(--color-text-muted)" }}
+          style={{ color: "var(--color-muted)" }}
         >
           Display Name
         </label>
@@ -86,6 +79,13 @@ export function OnboardingForm({ suggestedHandle, suggestedDisplayName }: Props)
         />
       </div>
 
+      <div className="flex flex-col gap-1.5">
+        <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
+          Your colour
+        </p>
+        <PalettePicker value={palette} onChange={setPalette} />
+      </div>
+
       {upsert.error && (
         <p className="text-xs text-destructive">{upsert.error.message}</p>
       )}
@@ -93,8 +93,8 @@ export function OnboardingForm({ suggestedHandle, suggestedDisplayName }: Props)
       <Button
         type="submit"
         disabled={upsert.isPending || !handle || !displayName}
-        className="mt-2 w-full rounded-full font-semibold text-white"
-        style={{ background: "var(--color-live-accent)" }}
+        className="mt-2 w-full rounded-md font-medium text-white hover:opacity-90"
+        style={{ background: "var(--color-primary)" }}
       >
         {upsert.isPending ? "Creating account…" : "Get started"}
       </Button>

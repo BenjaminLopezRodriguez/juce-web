@@ -7,6 +7,7 @@ import { api } from "~/trpc/react";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { IVSPlayer } from "./IVSPlayer";
 
 const SOLO_TIMEOUT_MS = 5 * 60 * 1000;
@@ -157,26 +158,23 @@ export function RoomView({ room: initialRoom, currentUser, isHost }: Props) {
   // ── Ended state ───────────────────────────────────────────────────────────
   if (ended) {
     return (
-      <div
-        className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center"
-        style={{ background: "var(--color-surface)" }}
-      >
+      <div className="juce-shell flex min-h-dvh flex-col items-center justify-center gap-4 px-6 text-center">
         <div
-          className="flex h-16 w-16 items-center justify-center rounded-full"
-          style={{ background: "var(--color-juce-muted-bg)" }}
+          className="flex size-16 items-center justify-center"
+          style={{ background: "var(--color-secondary)", borderRadius: "var(--radius-base)" }}
         >
-          <Radio className="h-7 w-7" style={{ color: "var(--color-text-muted)" }} />
+          <Radio className="size-7" style={{ color: "var(--color-muted)" }} />
         </div>
-        <h2 className="text-xl font-black" style={{ color: "var(--color-app-primary)" }}>
+        <h2 className="font-heading text-xl font-semibold" style={{ color: "var(--color-text)" }}>
           This room has ended
         </h2>
-        <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+        <p className="text-sm" style={{ color: "var(--color-muted)" }}>
           &ldquo;{initialRoom.title}&rdquo;
         </p>
         <Button
           onClick={() => router.push("/")}
-          className="mt-2 rounded-full font-semibold text-white"
-          style={{ background: "var(--color-live-accent)" }}
+          className="mt-2 rounded-md font-medium text-white hover:opacity-90"
+          style={{ background: "var(--color-primary)" }}
         >
           Back to home
         </Button>
@@ -185,61 +183,55 @@ export function RoomView({ room: initialRoom, currentUser, isHost }: Props) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col" style={{ background: "var(--color-room-dark)" }}>
-      {/* Confirm-end overlay (shown when solo timer expires — host must decide) */}
-      {showEndConfirm && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center px-6"
-          style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}>
-          <div
-            className="w-full max-w-xs rounded-3xl p-6 text-center"
-            style={{ background: "var(--color-room-dark)", border: "1px solid rgba(255,255,255,0.12)" }}
-          >
-            <p className="mb-1 text-lg font-black text-white">Still there?</p>
-            <p className="mb-6 text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
-              You&apos;ve been the only one here for a while.
-            </p>
-            <div className="flex flex-col gap-2">
-              <Button
-                onClick={keepGoing}
-                className="w-full rounded-full font-semibold text-white"
-                style={{ background: "var(--color-live-accent)" }}
-              >
-                Keep going
-              </Button>
-              <Button
-                onClick={() => end.mutate({ roomId: initialRoom.id })}
-                disabled={end.isPending}
-                variant="ghost"
-                className="w-full rounded-full font-semibold"
-                style={{ color: "rgba(255,255,255,0.5)" }}
-              >
-                End the room
-              </Button>
-            </div>
+    <div className="flex min-h-dvh flex-col" style={{ background: "var(--color-background)" }}>
+      {/* Confirm-end dialog (shown when solo timer expires — host must decide) */}
+      <Dialog open={showEndConfirm} onOpenChange={(open) => !open && keepGoing()}>
+        <DialogContent showCloseButton={false} className="text-center">
+          <p className="font-heading text-lg font-semibold">Still there?</p>
+          <p className="text-sm text-muted-foreground">
+            You&apos;ve been the only one here for a while.
+          </p>
+          <div className="flex flex-col gap-2">
+            <Button
+              onClick={keepGoing}
+              className="w-full rounded-md font-medium text-white hover:opacity-90"
+              style={{ background: "var(--color-primary)" }}
+            >
+              Keep going
+            </Button>
+            <Button
+              onClick={() => end.mutate({ roomId: initialRoom.id })}
+              disabled={end.isPending}
+              variant="ghost"
+              className="w-full rounded-md font-medium text-muted-foreground"
+            >
+              End the room
+            </Button>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3">
+      <header className="flex items-center justify-between border-b px-4 py-3" style={{ borderColor: "var(--color-juce-border)" }}>
         <button
+          aria-label="Leave room"
           onClick={() => { handleLeave(); router.push("/"); }}
-          className="flex h-9 w-9 items-center justify-center rounded-full transition-opacity hover:opacity-70"
-          style={{ background: "rgba(255,255,255,0.1)" }}
+          className="flex size-9 items-center justify-center rounded-md transition-opacity hover:opacity-70"
+          style={{ background: "var(--color-secondary)" }}
         >
-          <ArrowLeft className="h-5 w-5 text-white" />
+          <ArrowLeft className="size-5" style={{ color: "var(--color-text)" }} />
         </button>
 
         <div className="flex flex-col items-center gap-0.5">
-          <span className="max-w-[180px] line-clamp-1 text-sm font-bold text-white">
+          <span className="line-clamp-1 max-w-[180px] text-sm font-medium" style={{ color: "var(--color-text)" }}>
             {initialRoom.title}
           </span>
           <div className="flex items-center gap-1.5">
-            <Badge className="live-dot rounded-full bg-transparent text-[10px] font-extrabold uppercase tracking-wider text-white">
+            <Badge className="live-dot rounded-md border-0 bg-transparent px-0 text-[10px] font-medium uppercase tracking-wide" style={{ color: "var(--color-muted)" }}>
               Live
             </Badge>
-            <span className="flex items-center gap-1 text-xs text-white/60">
-              <Users className="h-3 w-3" />
+            <span className="flex items-center gap-1 text-xs" style={{ color: "var(--color-muted)" }}>
+              <Users className="size-3" />
               {listenerCount}
             </span>
           </div>
@@ -249,8 +241,8 @@ export function RoomView({ room: initialRoom, currentUser, isHost }: Props) {
           <Button
             onClick={() => end.mutate({ roomId: initialRoom.id })}
             disabled={end.isPending}
-            className="h-9 rounded-full px-4 text-xs font-bold text-white"
-            style={{ background: "var(--color-squeeze-accent)" }}
+            className="h-9 rounded-md px-4 text-xs font-medium text-white hover:opacity-90"
+            style={{ background: "var(--color-accent)" }}
           >
             End
           </Button>
@@ -258,27 +250,28 @@ export function RoomView({ room: initialRoom, currentUser, isHost }: Props) {
           <Button
             onClick={() => { handleLeave(); router.push("/"); }}
             variant="ghost"
-            className="h-9 rounded-full px-4 text-xs font-medium text-white hover:bg-white/10"
+            className="h-9 rounded-md px-4 text-xs font-medium"
+            style={{ color: "var(--color-muted)" }}
           >
             Leave
           </Button>
         )}
       </header>
 
-      {/* Video / Audio stream */}
       <div
-        className="relative mx-4 overflow-hidden rounded-3xl"
+        className="relative mx-4 overflow-hidden"
         style={{
           aspectRatio: "9/16",
-          maxHeight: "calc(100vh - 180px)",
-          background: "rgba(255,255,255,0.04)",
+          maxHeight: "calc(100dvh - 180px)",
+          background: "var(--color-secondary)",
+          borderRadius: "var(--radius-base)",
         }}
       >
         {initialRoom.ivsPlaybackUrl ? (
           <IVSPlayer playbackUrl={initialRoom.ivsPlaybackUrl} />
         ) : (
           <div className="flex h-full items-center justify-center">
-            <p className="text-sm text-white/40">Waiting for stream…</p>
+            <p className="text-sm" style={{ color: "var(--color-muted)" }}>Waiting for stream…</p>
           </div>
         )}
 
@@ -288,15 +281,16 @@ export function RoomView({ room: initialRoom, currentUser, isHost }: Props) {
             className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-1 px-4 py-4"
             style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85), transparent)" }}
           >
-            <p className="text-xs font-semibold text-white/80">You&apos;re the only one here</p>
-            <p className="text-2xl font-black tabular-nums text-white">
+            <p className="text-xs font-medium" style={{ color: "var(--color-text)" }}>You&apos;re the only one here</p>
+            <p className="font-heading text-2xl font-semibold tabular-nums" style={{ color: "var(--color-text)" }}>
               {formatCountdown(soloSecondsLeft)}
             </p>
-            <p className="text-[10px] text-white/50">Ending soon</p>
+            <p className="text-[10px]" style={{ color: "var(--color-muted)" }}>Ending soon</p>
             <Button
               onClick={keepGoing}
               variant="ghost"
-              className="mt-1 h-8 rounded-full px-5 text-xs font-semibold text-white hover:bg-white/10"
+              className="mt-1 h-8 rounded-md px-5 text-xs font-medium"
+              style={{ color: "var(--color-text)" }}
             >
               Keep going
             </Button>
@@ -307,17 +301,18 @@ export function RoomView({ room: initialRoom, currentUser, isHost }: Props) {
       {/* Solo banner — before final minute */}
       {soloSecondsLeft !== null && soloSecondsLeft >= 60 && !showEndConfirm && (
         <div
-          className="mx-4 mt-3 flex items-center justify-between rounded-2xl px-4 py-3"
-          style={{ background: "rgba(255,255,255,0.06)" }}
+          className="mx-4 mt-3 flex items-center justify-between px-4 py-3"
+          style={{ background: "var(--color-secondary)", borderRadius: "var(--radius-base)" }}
         >
-          <p className="text-sm text-white/70">
+          <p className="text-sm" style={{ color: "var(--color-muted)" }}>
             You&apos;re the only one — ending in{" "}
-            <span className="font-bold tabular-nums text-white">{formatCountdown(soloSecondsLeft)}</span>
+            <span className="font-medium tabular-nums" style={{ color: "var(--color-text)" }}>{formatCountdown(soloSecondsLeft)}</span>
           </p>
           <Button
             onClick={keepGoing}
             variant="ghost"
-            className="h-7 rounded-full px-3 text-xs text-white/70 hover:bg-white/10"
+            className="h-7 rounded-md px-3 text-xs"
+            style={{ color: "var(--color-muted)" }}
           >
             Dismiss
           </Button>
@@ -326,12 +321,12 @@ export function RoomView({ room: initialRoom, currentUser, isHost }: Props) {
 
       {/* Host card */}
       <div
-        className="mx-4 mt-4 flex items-center gap-3 rounded-2xl px-4 py-3"
-        style={{ background: "rgba(255,255,255,0.06)" }}
+        className="mx-4 mt-4 mb-6 flex items-center gap-3 px-4 py-3"
+        style={{ background: "var(--color-secondary)", borderRadius: "var(--radius-base)" }}
       >
-        <Avatar className="h-9 w-9 flex-shrink-0">
+        <Avatar className="size-9 flex-shrink-0">
           <AvatarFallback
-            className="bubble-gradient text-xs font-bold text-white"
+            className="bubble-gradient text-xs font-medium text-white"
             style={{
               "--palette-from": initialRoom.host.paletteFrom,
               "--palette-to": initialRoom.host.paletteTo,
@@ -341,8 +336,8 @@ export function RoomView({ room: initialRoom, currentUser, isHost }: Props) {
           </AvatarFallback>
         </Avatar>
         <div className="flex flex-col gap-0.5 leading-none">
-          <span className="text-sm font-semibold text-white">{initialRoom.host.displayName}</span>
-          <span className="text-xs text-white/50">@{initialRoom.host.handle} · host</span>
+          <span className="text-sm font-medium" style={{ color: "var(--color-text)" }}>{initialRoom.host.displayName}</span>
+          <span className="text-xs" style={{ color: "var(--color-muted)" }}>@{initialRoom.host.handle} · host</span>
         </div>
       </div>
     </div>

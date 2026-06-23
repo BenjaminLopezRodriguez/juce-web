@@ -12,6 +12,9 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
+import { PalettePicker, type Palette } from "./PalettePicker";
+
+const DEFAULT_PALETTE: Palette = { from: "#3b5bdb", to: "#151228" };
 
 interface RoomResult {
   id: number;
@@ -21,6 +24,7 @@ export function StartRoomButton({ label = "Go Live" }: { label?: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [palette, setPalette] = useState<Palette>(DEFAULT_PALETTE);
   const [result, setResult] = useState<RoomResult | null>(null);
 
   const create = api.room.create.useMutation({
@@ -33,6 +37,7 @@ export function StartRoomButton({ label = "Go Live" }: { label?: string }) {
   function close() {
     setOpen(false);
     setTitle("");
+    setPalette(DEFAULT_PALETTE);
     setResult(null);
     create.reset();
   }
@@ -46,8 +51,8 @@ export function StartRoomButton({ label = "Go Live" }: { label?: string }) {
     <>
       <Button
         onClick={() => setOpen(true)}
-        className="rounded-full text-sm font-semibold text-white"
-        style={{ background: "var(--color-live-accent)" }}
+        className="h-10 rounded-full px-4 text-sm font-medium text-white hover:opacity-90"
+        style={{ background: "var(--color-primary)" }}
       >
         {label}
       </Button>
@@ -60,10 +65,12 @@ export function StartRoomButton({ label = "Go Live" }: { label?: string }) {
             <CreateForm
               title={title}
               onTitleChange={setTitle}
+              palette={palette}
+              onPaletteChange={setPalette}
               isPending={create.isPending}
               error={create.error?.message}
               onSubmit={() =>
-                create.mutate({ title: title.trim(), paletteFrom: "#6c63ff", paletteTo: "#0c0c14" })
+                create.mutate({ title: title.trim(), paletteFrom: palette.from, paletteTo: palette.to })
               }
             />
           )}
@@ -76,12 +83,16 @@ export function StartRoomButton({ label = "Go Live" }: { label?: string }) {
 function CreateForm({
   title,
   onTitleChange,
+  palette,
+  onPaletteChange,
   isPending,
   error,
   onSubmit,
 }: {
   title: string;
   onTitleChange: (v: string) => void;
+  palette: Palette;
+  onPaletteChange: (v: Palette) => void;
   isPending: boolean;
   error?: string;
   onSubmit: () => void;
@@ -89,10 +100,7 @@ function CreateForm({
   return (
     <>
       <DialogHeader>
-        <DialogTitle
-          className="text-lg font-black"
-          style={{ fontFamily: "var(--font-rounded)", color: "var(--color-app-primary)" }}
-        >
+        <DialogTitle className="text-base font-medium">
           Start a room
         </DialogTitle>
       </DialogHeader>
@@ -105,16 +113,23 @@ function CreateForm({
         onKeyDown={(e) => e.key === "Enter" && title.trim() && !isPending && onSubmit()}
         maxLength={128}
         autoFocus
-        className="rounded-xl"
+        className="rounded-md"
       />
+
+      <div className="flex flex-col gap-1.5">
+        <p className="text-xs font-medium uppercase tracking-wide" style={{ color: "var(--color-text-muted)" }}>
+          Room colour
+        </p>
+        <PalettePicker value={palette} onChange={onPaletteChange} />
+      </div>
 
       {error && <p className="text-xs text-destructive">{error}</p>}
 
       <Button
         disabled={!title.trim() || isPending}
         onClick={onSubmit}
-        className="w-full rounded-full font-semibold text-white"
-        style={{ background: "var(--color-live-accent)" }}
+        className="w-full rounded-md font-medium text-white hover:opacity-90"
+        style={{ background: "var(--color-primary)" }}
       >
         {isPending ? "Creating…" : "Go Live"}
       </Button>
@@ -139,10 +154,7 @@ function SuccessState({
   return (
     <>
       <DialogHeader>
-        <DialogTitle
-          className="text-lg font-black"
-          style={{ fontFamily: "var(--font-rounded)", color: "var(--color-app-primary)" }}
-        >
+        <DialogTitle className="text-base font-medium">
           Room is live
         </DialogTitle>
       </DialogHeader>
@@ -156,15 +168,15 @@ function SuccessState({
       <div className="flex gap-2 pt-1">
         <Button
           onClick={onGoToRoom}
-          className="flex-1 rounded-full font-semibold text-white"
-          style={{ background: "var(--color-live-accent)" }}
+          className="flex-1 rounded-md font-medium text-white hover:opacity-90"
+          style={{ background: "var(--color-primary)" }}
         >
           Enter room
         </Button>
         <Button
           onClick={onClose}
           variant="ghost"
-          className="rounded-full px-4"
+          className="rounded-md px-4"
           style={{ color: "var(--color-text-muted)" }}
         >
           Later
@@ -186,10 +198,10 @@ function CopyField({ value }: { value: string }) {
   return (
     <button
       onClick={copy}
-      className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition-opacity hover:opacity-80"
+      className="flex w-full items-center gap-3 rounded-md border px-3 py-2.5 text-left transition-opacity hover:opacity-80"
       style={{
-        background: "var(--color-juce-muted-bg)",
-        border: "1.5px solid var(--color-juce-border)",
+        background: "transparent",
+        borderColor: "var(--color-juce-border)",
       }}
     >
       <span
@@ -200,7 +212,7 @@ function CopyField({ value }: { value: string }) {
       </span>
       <span
         className="flex-shrink-0"
-        style={{ color: copied ? "var(--color-live-accent)" : "var(--color-text-muted)" }}
+        style={{ color: copied ? "var(--color-primary)" : "var(--color-muted)" }}
       >
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
       </span>

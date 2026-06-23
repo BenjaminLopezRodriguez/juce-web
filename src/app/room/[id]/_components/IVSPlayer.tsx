@@ -70,8 +70,8 @@ export function IVSPlayer({ playbackUrl }: Props) {
           aria-label={muted ? "Unmute" : "Mute"}
         >
           {muted
-            ? <VolumeX className="h-5 w-5 text-white" />
-            : <Volume2 className="h-5 w-5 text-white" />
+            ? <VolumeX className="size-5 text-white" />
+            : <Volume2 className="size-5 text-white" />
           }
         </button>
       )}

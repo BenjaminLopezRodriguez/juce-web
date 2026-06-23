@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { db } from "~/server/db";
 import { users } from "~/server/db/schema";
+import { Button } from "~/components/ui/button";
 import { HomeScreen } from "./_components/HomeScreen";
 
 export default async function Home() {
@@ -19,30 +20,22 @@ export default async function Home() {
   }
 
   return (
-    <main
-      className="flex min-h-screen flex-col items-center justify-center gap-8"
-      style={{ background: "var(--color-surface)" }}
-    >
-      <div className="flex flex-col items-center gap-2">
-        <h1
-          className="text-6xl font-black tracking-tight"
-          style={{ fontFamily: "var(--font-rounded)", color: "var(--color-app-primary)" }}
-        >
+    <main className="juce-shell flex min-h-dvh flex-col items-center justify-center gap-10 px-6">
+      <div className="flex flex-col items-center gap-2 text-center">
+        <h1 className="font-heading text-4xl font-semibold tracking-tight" style={{ color: "var(--color-text)" }}>
           Juce
         </h1>
-        <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-          Music. Live. Together.
+        <p className="text-sm" style={{ color: "var(--color-muted)" }}>
+          Say it. Start a room. Leave a snippet.
         </p>
       </div>
-      <LoginLink
-        className="px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-80"
-        style={{
-          background: "var(--color-live-accent)",
-          borderRadius: "var(--juce-radius-pill)",
-        }}
+      <Button
+        asChild
+        className="h-9 rounded-md px-5 text-sm font-medium text-white hover:opacity-90"
+        style={{ background: "var(--color-primary)" }}
       >
-        Sign in to Juce
-      </LoginLink>
+        <LoginLink>Sign in</LoginLink>
+      </Button>
     </main>
   );
 }

@@ -1,0 +1,13 @@
+:root {
+  --color-primary: #3b5bdb;
+  --color-secondary: #151228;
+  --color-accent: #7c6df0;
+  --color-background: #0c0a18;
+  --color-surface: #14122a;
+  --color-text: #eceef5;
+  --color-muted: #6b7289;
+  --font-heading: "Outfit", ui-sans-serif, system-ui;
+  --font-body: "DM Sans", ui-sans-serif, system-ui;
+  --font-mono: "JetBrains Mono", ui-monospace;
+  --radius-base: 8px;
+}

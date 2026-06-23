@@ -4,8 +4,41 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { momentLikes, momentSpeakers, moments } from "~/server/db/schema";
+import { TIMELINE_ROOM_TITLE } from "~/lib/constants";
+import { getOrCreateTimelineRoom } from "~/server/moments/timeline-room";
 
 export const momentRouter = createTRPCRouter({
+  blurt: protectedProcedure
+    .input(
+      z.object({
+        transcript: z.string().min(1).max(2000),
+        clipDurationSecs: z.number().min(0).max(300),
+        caption: z.string().max(280).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const roomId = await getOrCreateTimelineRoom(ctx.db, ctx.dbUser);
+
+      const [moment] = await ctx.db
+        .insert(moments)
+        .values({
+          roomId,
+          authorId: ctx.dbUser.id,
+          transcript: input.transcript.trim(),
+          clipDurationSecs: input.clipDurationSecs,
+          source: "host_moment",
+          caption: input.caption ?? "",
+        })
+        .returning({ id: moments.id, createdAt: moments.createdAt });
+
+      if (!moment) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      return {
+        id: moment.id,
+        createdAt: moment.createdAt.toISOString(),
+      };
+    }),
+
   squeeze: protectedProcedure
     .input(
       z.object({
