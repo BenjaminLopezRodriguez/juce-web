@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+/* ─── Juce Design Tokens ──────────────────────────────────────────────── */
+
+@theme {
+  /* Fonts */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji";
+  --font-rounded: "Nunito", "Varela Round", var(--font-sans);
+
+  /* Brand Colors */
+  --color-surface:         #f5f3ef;
+  --color-surface-elevated: #ffffff;
+  --color-room-dark:       #0c0c14;
+  --color-app-primary:     #1a1a1a;
+  --color-live-accent:     #f97316;
+  --color-squeeze-accent:  #ff3cac;
+  --color-collab-indigo:   #6c63ff;
+
+  /* Semantic */
+  --color-muted:           #6b7280;
+  --color-muted-bg:        #f3f4f6;
+  --color-border:          rgba(0,0,0,0.08);
+  --color-border-strong:   rgba(0,0,0,0.16);
+
+  /* Border Radius Scale — Snapchat-round */
+  --radius-xs:   8px;
+  --radius-sm:   12px;
+  --radius-md:   16px;
+  --radius-lg:   24px;
+  --radius-xl:   32px;
+  --radius-pill: 9999px;
+
+  /* Spacing (4pt grid) */
+  --spacing-xs:   4px;
+  --spacing-sm:   8px;
+  --spacing-md:   12px;
+  --spacing-base: 16px;
+  --spacing-lg:   24px;
+  --spacing-xl:   32px;
+  --spacing-xxl:  48px;
+
+  /* Shadows */
+  --shadow-card:    0 4px 12px 0 rgba(0,0,0,0.07);
+  --shadow-float:   0 10px 24px 0 rgba(0,0,0,0.18);
+  --shadow-bubble:  0 6px 16px 0 rgba(0,0,0,0.14);
+}
+
+/* ─── Base ────────────────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-app-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Utility Classes ────────────────────────────────────────────────── */
+
+/* Palette bubble — tinted by room/user gradient */
+.bubble-gradient {
+  background: linear-gradient(135deg, var(--palette-from, #f97316), var(--palette-to, #1a1a1a));
+}
+
+/* Squeeze pulse ring */
+@keyframes squeeze-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 60, 172, 0.4); }
+  50%       { box-shadow: 0 0 0 12px rgba(255, 60, 172, 0); }
+}
+
+.squeeze-live {
+  animation: squeeze-pulse 2s ease-in-out infinite;
+}
+
+/* Card */
+.juce-card {
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+/* Pill tag */
+.juce-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Room bubble — circular with palette fill */
+.room-bubble {
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--palette-from, #6c63ff), var(--palette-to, #0c0c14));
+  box-shadow: 0 6px 16px 0 color-mix(in srgb, var(--palette-from, #6c63ff) 30%, transparent);
+}
+
+/* Live indicator dot */
+.live-dot::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-squeeze-accent);
+  margin-right: 5px;
+  animation: squeeze-pulse 2s ease-in-out infinite;
+}
+
+/* Avatar ring (active speaker) */
+.avatar-ring {
+  outline: 2.5px solid transparent;
+  outline-offset: 2px;
+  background-image: linear-gradient(var(--color-surface-elevated), var(--color-surface-elevated)),
+                    linear-gradient(135deg, var(--palette-from, #f97316), var(--palette-to, #1a1a1a));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  border: 2.5px solid transparent;
+}
