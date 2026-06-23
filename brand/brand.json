@@ -2,19 +2,19 @@
   "name": "Juce",
   "tagline": "Say it. Start a room. Leave a snippet.",
   "colors": {
-    "primary": "#3b5bdb",
-    "secondary": "#151228",
-    "accent": "#7c6df0",
-    "background": "#0c0a18",
-    "surface": "#14122a",
-    "text": "#eceef5",
-    "muted": "#6b7289"
+    "primary": "#3b82f6",
+    "secondary": "#1a1a1a",
+    "accent": "#ef4444",
+    "background": "#0a0a0a",
+    "surface": "#141414",
+    "text": "#f5f5f5",
+    "muted": "#737373"
   },
   "fonts": {
     "heading": "Outfit",
     "body": "DM Sans",
     "mono": "JetBrains Mono"
   },
-  "radius": "md",
+  "radius": "lg",
   "mode": "dark"
 }
