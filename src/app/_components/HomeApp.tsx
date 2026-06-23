@@ -170,7 +170,7 @@ function RoomsPanel({ liveRooms }: { liveRooms: LiveRoom[] }) {
     return (
       <div className="flex flex-col items-start gap-4 pt-2">
         <p className="text-sm" style={{ color: "var(--color-muted)" }}>No live rooms.</p>
-        <StartRoomButton label="Start a room" />
+        <StartRoomButton />
       </div>
     );
   }
