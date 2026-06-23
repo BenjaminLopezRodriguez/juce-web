@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 interface RoomCardProps {
   room: {
     id: number;
@@ -11,7 +13,7 @@ interface RoomCardProps {
 
 export function RoomCard({ room }: RoomCardProps) {
   return (
-    <div className="group flex w-32 flex-shrink-0 cursor-pointer flex-col gap-2">
+    <Link href={`/room/${room.id}`} className="group flex w-32 flex-shrink-0 flex-col gap-2">
       <div
         className="room-bubble aspect-square w-full flex items-center justify-center transition-transform group-hover:scale-105"
         style={{
@@ -41,6 +43,6 @@ export function RoomCard({ room }: RoomCardProps) {
           {room.listenerCount} listening
         </p>
       </div>
-    </div>
+    </Link>
   );
 }

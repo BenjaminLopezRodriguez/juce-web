@@ -126,6 +126,53 @@ export const roomRouter = createTRPCRouter({
       return { ivsPlaybackUrl: room.ivsPlaybackUrl };
     }),
 
+  leave: protectedProcedure
+    .input(z.object({ roomId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const room = await ctx.db.query.rooms.findFirst({
+        where: and(eq(rooms.id, input.roomId), eq(rooms.state, "live")),
+      });
+      if (!room) return;
+
+      // Mark participant as left
+      await ctx.db
+        .update(roomParticipants)
+        .set({ leftAt: new Date() })
+        .where(
+          and(
+            eq(roomParticipants.roomId, input.roomId),
+            eq(roomParticipants.userId, ctx.dbUser.id),
+          ),
+        );
+
+      // Decrement count (floor 0)
+      await ctx.db
+        .update(rooms)
+        .set({ listenerCount: sql`GREATEST(${rooms.listenerCount} - 1, 0)` })
+        .where(eq(rooms.id, input.roomId));
+
+      // Re-fetch to get updated count
+      const updated = await ctx.db.query.rooms.findFirst({
+        where: eq(rooms.id, input.roomId),
+        columns: { listenerCount: true, ivsChannelArn: true },
+      });
+
+      // Auto-end when everyone is gone
+      if (updated && updated.listenerCount <= 0) {
+        await endRoom(ctx.db, input.roomId, updated.ivsChannelArn);
+      }
+    }),
+
+  heartbeat: protectedProcedure
+    .input(z.object({ roomId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const room = await ctx.db.query.rooms.findFirst({
+        where: eq(rooms.id, input.roomId),
+        columns: { listenerCount: true, state: true },
+      });
+      return room ?? { listenerCount: 0, state: "ended" as const };
+    }),
+
   end: protectedProcedure
     .input(z.object({ roomId: z.number() }))
     .mutation(async ({ ctx, input }) => {
@@ -141,14 +188,21 @@ export const roomRouter = createTRPCRouter({
         throw new TRPCError({ code: "BAD_REQUEST", message: "Room already ended" });
       }
 
-      if (room.ivsChannelArn) {
-        await stopIvsStream(room.ivsChannelArn).catch(() => null); // ok if already stopped
-        await deleteIvsChannel(room.ivsChannelArn);
-      }
-
-      await ctx.db
-        .update(rooms)
-        .set({ state: "ended", endedAt: new Date() })
-        .where(eq(rooms.id, input.roomId));
+      await endRoom(ctx.db, input.roomId, room.ivsChannelArn);
     }),
 });
+
+async function endRoom(
+  db: typeof import("~/server/db").db,
+  roomId: number,
+  channelArn: string | null,
+) {
+  if (channelArn) {
+    await stopIvsStream(channelArn).catch(() => null);
+    await deleteIvsChannel(channelArn).catch(() => null);
+  }
+  await db
+    .update(rooms)
+    .set({ state: "ended", endedAt: new Date() })
+    .where(eq(rooms.id, roomId));
+}

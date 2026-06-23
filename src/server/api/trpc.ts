@@ -16,19 +16,31 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     const auth = opts.headers.get("authorization");
     if (auth?.startsWith("Bearer ")) {
       const token = auth.slice(7);
-      try {
-        const res = await fetch(
-          `${process.env.KINDE_ISSUER_URL}/oauth2/v2/user_profile`,
-          { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
-        );
-        if (res.ok) {
-          const profile = (await res.json()) as {
-            id: string;
-            email?: string | null;
-          };
-          kindeUser = { id: profile.id, email: profile.email ?? "" } as NonNullable<typeof kindeUser>;
-        }
-      } catch {}
+      // Try both Kinde's custom endpoint and the standard OAuth userinfo endpoint
+      const endpoints = [
+        `${process.env.KINDE_ISSUER_URL}/oauth2/v2/user_profile`,
+        `${process.env.KINDE_ISSUER_URL}/oauth2/userinfo`,
+      ];
+      for (const endpoint of endpoints) {
+        try {
+          const res = await fetch(endpoint, {
+            headers: { Authorization: `Bearer ${token}` },
+            cache: "no-store",
+          });
+          if (res.ok) {
+            const profile = (await res.json()) as {
+              id?: string;
+              sub?: string; // standard OAuth field
+              email?: string | null;
+            };
+            const profileId = profile.id ?? profile.sub;
+            if (profileId) {
+              kindeUser = { id: profileId, email: profile.email ?? "" } as NonNullable<typeof kindeUser>;
+              break;
+            }
+          }
+        } catch {}
+      }
     }
   }
 
