@@ -1,9 +1,10 @@
-import { LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
+import { LoginLink } from "@kinde-oss/kinde-auth-nextjs/components";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { db } from "~/server/db";
 import { users } from "~/server/db/schema";
+import { HomeScreen } from "./_components/HomeScreen";
 
 export default async function Home() {
   const { getUser, isAuthenticated } = getKindeServerSession();
@@ -14,6 +15,7 @@ export default async function Home() {
       where: eq(users.kindeId, kindeUser.id),
     });
     if (!dbUser) redirect("/onboarding");
+    return <HomeScreen user={dbUser} />;
   }
 
   return (
@@ -32,34 +34,15 @@ export default async function Home() {
           Music. Live. Together.
         </p>
       </div>
-
-      {authed ? (
-        <div className="flex flex-col items-center gap-3">
-          <p className="text-sm" style={{ color: "var(--color-muted)" }}>
-            Signed in as {kindeUser?.email}
-          </p>
-          <LogoutLink
-            className="px-6 py-2.5 text-sm font-semibold transition-opacity hover:opacity-70"
-            style={{
-              background: "var(--color-muted-bg)",
-              color: "var(--color-app-primary)",
-              borderRadius: "var(--radius-pill)",
-            }}
-          >
-            Sign out
-          </LogoutLink>
-        </div>
-      ) : (
-        <LoginLink
-          className="px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-80"
-          style={{
-            background: "var(--color-live-accent)",
-            borderRadius: "var(--radius-pill)",
-          }}
-        >
-          Sign in to Juce
-        </LoginLink>
-      )}
+      <LoginLink
+        className="px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-80"
+        style={{
+          background: "var(--color-live-accent)",
+          borderRadius: "var(--radius-pill)",
+        }}
+      >
+        Sign in to Juce
+      </LoginLink>
     </main>
   );
 }

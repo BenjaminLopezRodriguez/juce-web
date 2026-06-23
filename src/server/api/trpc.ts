@@ -9,7 +9,28 @@ import { eq } from "drizzle-orm";
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const { getUser } = getKindeServerSession();
-  const kindeUser = await getUser();
+  let kindeUser = await getUser();
+
+  // iOS sends a Bearer token — validate via Kinde userinfo endpoint
+  if (!kindeUser?.id) {
+    const auth = opts.headers.get("authorization");
+    if (auth?.startsWith("Bearer ")) {
+      const token = auth.slice(7);
+      try {
+        const res = await fetch(
+          `${process.env.KINDE_ISSUER_URL}/oauth2/v2/user_profile`,
+          { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
+        );
+        if (res.ok) {
+          const profile = (await res.json()) as {
+            id: string;
+            email?: string | null;
+          };
+          kindeUser = { id: profile.id, email: profile.email ?? "" } as NonNullable<typeof kindeUser>;
+        }
+      } catch {}
+    }
+  }
 
   let dbUser = null;
   if (kindeUser?.id) {
