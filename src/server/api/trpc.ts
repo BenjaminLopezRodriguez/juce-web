@@ -1,5 +1,6 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { TRPCError, initTRPC } from "@trpc/server";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
@@ -7,39 +8,67 @@ import { db } from "~/server/db";
 import { users } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 
+// Cached JWKS — reused across requests (jose caches internally)
+const getJWKS = (() => {
+  let jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
+  return () => {
+    jwks ??= createRemoteJWKSet(
+      new URL(`${process.env.KINDE_ISSUER_URL}/.well-known/jwks.json`),
+    );
+    return jwks;
+  };
+})();
+
+async function kindeUserFromBearer(token: string) {
+  // 1. Try JWKS JWT verification (works for both access tokens and ID tokens)
+  try {
+    const { payload } = await jwtVerify(token, getJWKS(), {
+      issuer: process.env.KINDE_ISSUER_URL,
+    });
+    const id = (payload.sub ?? (payload as Record<string, unknown>).id) as string | undefined;
+    if (id) return { id, email: (payload.email as string | undefined) ?? "" };
+  } catch (e) {
+    console.warn("[auth] JWKS verify failed:", (e as Error).message);
+  }
+
+  // 2. Fallback: call Kinde userinfo endpoint (works for access tokens with profile scope)
+  for (const endpoint of [
+    `${process.env.KINDE_ISSUER_URL}/oauth2/v2/user_profile`,
+    `${process.env.KINDE_ISSUER_URL}/oauth2/userinfo`,
+  ]) {
+    try {
+      const res = await fetch(endpoint, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const p = (await res.json()) as { id?: string; sub?: string; email?: string | null };
+        const id = p.id ?? p.sub;
+        if (id) return { id, email: p.email ?? "" };
+      } else {
+        console.warn("[auth] userinfo", endpoint, "→", res.status);
+      }
+    } catch (e) {
+      console.warn("[auth] userinfo fetch failed:", (e as Error).message);
+    }
+  }
+
+  return null;
+}
+
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const { getUser } = getKindeServerSession();
   let kindeUser = await getUser();
 
-  // iOS sends a Bearer token — validate via Kinde userinfo endpoint
+  // iOS / native clients send Authorization: Bearer <token>
   if (!kindeUser?.id) {
     const auth = opts.headers.get("authorization");
     if (auth?.startsWith("Bearer ")) {
-      const token = auth.slice(7);
-      // Try both Kinde's custom endpoint and the standard OAuth userinfo endpoint
-      const endpoints = [
-        `${process.env.KINDE_ISSUER_URL}/oauth2/v2/user_profile`,
-        `${process.env.KINDE_ISSUER_URL}/oauth2/userinfo`,
-      ];
-      for (const endpoint of endpoints) {
-        try {
-          const res = await fetch(endpoint, {
-            headers: { Authorization: `Bearer ${token}` },
-            cache: "no-store",
-          });
-          if (res.ok) {
-            const profile = (await res.json()) as {
-              id?: string;
-              sub?: string; // standard OAuth field
-              email?: string | null;
-            };
-            const profileId = profile.id ?? profile.sub;
-            if (profileId) {
-              kindeUser = { id: profileId, email: profile.email ?? "" } as NonNullable<typeof kindeUser>;
-              break;
-            }
-          }
-        } catch {}
+      const resolved = await kindeUserFromBearer(auth.slice(7));
+      if (resolved) {
+        kindeUser = resolved as NonNullable<typeof kindeUser>;
+      } else {
+        console.warn("[auth] Bearer token present but could not resolve Kinde user");
       }
     }
   }
